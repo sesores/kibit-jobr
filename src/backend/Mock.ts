@@ -59,6 +59,7 @@ export class Mock
 			return [ 201, user ]
 		})
 
+
 		// LOGIN
 		this.mock.onPost('/auth/login').reply((config) => {
 			const body = JSON.parse(config.data)
@@ -79,6 +80,7 @@ export class Mock
 			}]
 		})
 
+
 		// LOGOUT
 		this.mock.onPost('/auth/logout').reply(200)
 	}
@@ -88,10 +90,61 @@ export class Mock
 	// OFFER
 	offer():void
 	{
+		/*
+		list: () => request.get<Offer[]>('/offer'),
+		my: () => request.get<Offer[]>('/offer/my'),
+		get: (id:string) => request.get<Offer>(`/offer/${ id }`),
+		create: (offer:Offer) => request.post<Offer>('/offer', offer),
+		update: (offer:Offer) => request.put<Offer>('/offer', offer),
+		delete: (id:string) => request.delete<void>(`/offer/${ id }`),
+		apply: (offer:Offer, user:User) => request.post<Offer>('/offer/apply', { offer, user })
+		*/
+
+		// LIST
+		this.mock.onGet('/offer').reply((config) => {
+			return [ 200, this.db.offers ]
+		})
+
+
+		// LIST BY USER
+		this.mock.onGet(/\/offer\/user\/*/).reply((config) => {
+			const userId = config.url?.split('/user/')[1]
+
+			if (!userId)
+				return [ 404 ]
+			
+			console.log('MOCK :: OFFER / USER / ', userId)
+
+			const user = this.getUserById(userId)
+
+			if (!user)
+				return [ 404 ]
+
+			let candidates:Offer[] = []
+
+			switch (user.type)
+			{
+				case 'applicant':
+					candidates = this.db.offers.filter((offer) => offer.applicants.includes(user.id))
+					break
+				
+				case 'employer':
+					candidates = this.db.offers.filter((offer) => offer.owner === user.id)
+					break
+			}
+
+			return [ 200, candidates ]
+		})
+
+
+		// LIST TRENDING
+		this.mock.onGet('/offer/trending').reply((config) => {
+			return [ 200, [...this.db.offers].sort(() => Math.random() - 0.5) ]
+		})
 	}
 
 
-	
+
 	// STORAGE
 	load(reset:boolean):void
 	{
@@ -105,6 +158,11 @@ export class Mock
 				{
 					id: '1c32969d-27d4-4068-b6f5-855f81b2385b',
 					username: 'john',
+					type: 'employer'
+				},
+				{
+					id: '624b8800-9035-4b02-9580-fd9926cf88cf',
+					username: 'carol',
 					type: 'employer'
 				},
 				{
@@ -124,12 +182,12 @@ export class Mock
 					id: '98651caf-d6a0-433f-ad2d-5f52bd678e76',
 					job: {
 						id: '8fdfcfdb-78ac-448a-9088-bf3bcda7e1fe',
-						title: 'VUE.JS 3 - Frontend Developer',
+						title: 'VUE 3 - Frontend Developer',
 						description: 'Lorem ipsum dolor sit amet.',
 						tags: [ 'frontend', 'vue' ],
 						created: 12345678,
 						salary: {
-							amount: 6000,
+							amount: 5000,
 							currency: 'EUR'
 						}
 					},
@@ -139,10 +197,10 @@ export class Mock
 					]
 				},
 				{
-					id: '98651caf-d6a0-433f-ad2d-5f52bd678e76',
+					id: '29d2c8d7-4287-4543-8efb-503627586314 ',
 					job: {
-						id: '8fdfcfdb-78ac-448a-9088-bf3bcda7e1fe',
-						title: 'NODE.JS - Backend Developer',
+						id: 'd8548cc0-bd02-4a58-835e-def9fe3efdcd ',
+						title: 'NodeJS - Backend Developer',
 						description: 'Lorem ipsum dolor sit amet.',
 						tags: [ 'backend', 'node' ],
 						created: 12345678,
@@ -153,7 +211,25 @@ export class Mock
 					},
 					owner: this.db.users[0].id,
 					applicants: [
-						this.db.users[1].id
+						this.db.users[2].id, this.db.users[3].id
+					]
+				},
+				{
+					id: '5530ed47-1a6f-4ded-a9d0-dc6016177625 ',
+					job: {
+						id: '6ced7eed-1779-4af3-bb1e-c7bf3945d08f',
+						title: 'React, Spring - Fullstack Developer',
+						description: 'Lorem ipsum dolor sit amet.',
+						tags: [ 'fullstack', 'frontend', 'backend', 'spring' ],
+						created: 12345678,
+						salary: {
+							amount: 15000,
+							currency: 'EUR'
+						}
+					},
+					owner: this.db.users[1].id,
+					applicants: [
+						this.db.users[3].id
 					]
 				}
 			]
@@ -174,100 +250,21 @@ export class Mock
 	{
 		localStorage.setItem("db", JSON.stringify(this.db))
 	}
-}
 
+	
 
-	// AUTH
-	/*getUserById(id:string):User | undefined
+	// UTILS
+	getUserById(id:string):User | undefined
 	{
 		const candidates = this.db.users.filter((user) => user.id === id)
 
 		return (candidates.length == 1) ? candidates[0] : undefined
 	}
 
-	register(username:string, type:string, password:string):Session | undefined
-	{
-		console.log(`BE::REGISTER: ${ username } @ ${ password }`)
-
-		return undefined
-	}
-
-
-	login(username:string, password:string):Session | undefined
-	{
-		console.log(`BE::LOGIN: ${ username } @ ${ password }`)
-		
-		if (password !== 'pwd')
-			throw new Error('Invalid password!')
-
-		const candidates = this.db.users.filter((user) => user.username === username)
-
-		if (candidates.length !== 1)
-			throw new Error('Invalid username!')
-
-		return {
-			user: candidates[0],
-			token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
-		}
-	}
-
-
-	logout(session:Session):void
-	{
-	}
-	
-
-
-	// OFFERS
 	getOfferById(id:string):Offer | undefined
 	{
 		const candidates = this.db.offers.filter((offer) => offer.id === id)
 
 		return (candidates.length == 1) ? candidates[0] : undefined
 	}
-
-
-	listTrendingOffers():Offer[]
-	{
-		console.log(`BE::LIST TRENDING OFFERS`)
-
-		return []
-	}
-
-
-	listAllOffers():Offer[]
-	{
-		console.log(`BE::LIST ALL OFFERS`)
-		
-		return this.db.offers
-	}
-
-
-	listOffersOfUser(user:User):Offer[]
-	{
-		console.log(`BE::LIST OFFERS OF USER: ${ user.username }`)
-		
-		let candidates:Offer[] = []
-
-		switch (user.type)
-		{
-			case 'applicant':
-				candidates = this.db.offers.filter((offer) => offer.applicants.includes(user.id))
-				break
-			
-			case 'employer':
-				candidates = this.db.offers.filter((offer) => offer.owner === user.id)
-				break
-		}
-
-		return candidates
-	}
-
-
-	searchOffers():Offer[]
-	{
-		console.log(`BE::SEARCH OFFERS`)
-		
-		return []
-	}
-}*/
+}

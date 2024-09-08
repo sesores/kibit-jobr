@@ -19,8 +19,8 @@ const mock = new Mock(true)
 // PINIA
 import { createPinia } from 'pinia'
 import { useCounterStore } from '@/stores/counter'
-import { useApiStore } from './stores/api'
-import { useAuthStore } from './stores/auth'
+import { useApiStore } from './stores/api.store'
+import { useAuthStore } from './stores/auth.store'
 
 app.use(createPinia())
 

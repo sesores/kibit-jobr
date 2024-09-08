@@ -1,12 +1,11 @@
 import { ref, computed, watchEffect, watch } from 'vue'
 import { defineStore } from 'pinia'
 
-import axios from 'axios'
-
+import api from '@/backend/Api'
 
 import type { User } from '@/types/User'
 import type { Offer } from '@/types/Offer'
-import { useAuthStore } from './auth'
+import { useAuthStore } from './auth.store'
 import type { Session } from '@/types/Session'
 
 
@@ -16,7 +15,7 @@ export const useApiStore = defineStore('api', () => {
 	const auth = useAuthStore()
 	
 	watch(() => auth.isLoggedIn, (n) => {
-		listOffersOfUser()
+		listMyOffers()
 	})
 
 	//watchEffect(effect)
@@ -39,39 +38,59 @@ export const useApiStore = defineStore('api', () => {
 
 
 
-	function getOfferById(id:string):Offer | undefined
+	async function getOfferById(id:string):Promise<Offer | undefined>
 	{
-		return undefined
-		//return backend.getOfferById(id)
+		return await api.offer.get(id)
 	}
 
 
-	function listTrendingOffers()
+	async function listAllOffers()
 	{
-		//trendingOffers.value = backend.listTrendingOffers()
+		allOffers.value = await api.offer.list()
 	}
 
 
-	function listAllOffers()
+	async function listTrendingOffers()
 	{
-		//allOffers.value = backend.listAllOffers()
+		trendingOffers.value = await api.offer.trending()
 	}
 
 
-	function listOffersOfUser()
+	async function listMyOffers()
 	{
-		//userOffers.value = (auth?.session?.user) ? backend.listOffersOfUser(auth.session.user) : []
+		try
+		{
+			userOffers.value = (auth.session?.user?.id)
+				? await listOffersOfUser(auth.session.user)
+				: []
+		}
+		catch (err)
+		{
+			userOffers.value = []
+		}
 	}
 
 
-	function searchOffers()
+	async function listOffersOfUser(user:User):Promise<Offer[]>
+	{
+		try
+		{
+			return api.offer.user(user.id)
+		}
+		catch (err)
+		{
+			return []
+		}
+	}
+
+
+	async function searchOffers()
 	{
 		//foundOffers.value = backend.searchOffers()
 	}
 
+	
 	// LOAD DEFAULTS
-	listAllOffers()
-	listOffersOfUser()
 	listTrendingOffers()
 	
 

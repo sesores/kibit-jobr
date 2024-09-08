@@ -5,7 +5,7 @@ import type { Session } from '@/types/Session'
 import type { Offer } from '@/types/Offer'
 import type { User } from '@/types/User'
 
-import { useAuthStore } from '@/stores/auth'
+import { useAuthStore } from '@/stores/auth.store'
 
 
 
@@ -82,7 +82,8 @@ const user = {
 
 const offer = {
 	list: () => request.get<Offer[]>('/offer'),
-	my: () => request.get<Offer[]>('/offer/my'),
+	user: (id:string) => request.get<Offer[]>(`/offer/user/${ id }`),
+	trending: () => request.get<Offer[]>(`/offer/trending`),
 	get: (id:string) => request.get<Offer>(`/offer/${ id }`),
 	create: (offer:Offer) => request.post<Offer>('/offer', offer),
 	update: (offer:Offer) => request.put<Offer>('/offer', offer),
