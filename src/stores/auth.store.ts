@@ -6,13 +6,18 @@ import api from '@/backend/Api'
 import type { Session } from '@/types/Session'
 import type { User } from '@/types/User'
 
+import router from '@/router/index'
+
 
 
 export const useAuthStore = defineStore('auth', () => {
 
 	const session = ref<Session>()
 	
-	const isLoggedIn = ref<boolean>(false)
+	const isLoggedIn = computed<boolean>(() => !!session.value?.user)
+	const isEmployer = computed<boolean>(() => session.value?.user.type == 'employer' ?? false)
+	const isApplicant = computed<boolean>(() => session.value?.user.type == 'applicant' ?? false)
+
 	const currentUser = computed<User | undefined>(() => session.value?.user )
 
 
@@ -40,7 +45,7 @@ export const useAuthStore = defineStore('auth', () => {
 			session.value = undefined
 		}
 		
-		isLoggedIn.value = (session.value !== undefined && session.value.user !== undefined)
+		router.push(isLoggedIn ? '/dashboard' : '/')
 	}
 
 
@@ -52,15 +57,19 @@ export const useAuthStore = defineStore('auth', () => {
 		}
 		
 		session.value = undefined
-		isLoggedIn.value = false
+		
+		router.push('/')
 	}
 	
 
 	return { 
 		isLoggedIn,
+		isEmployer,
+		isApplicant,
 		session, 
 		currentUser,
 		
+		getUserById,
 		register, 
 		login, 
 		logout 

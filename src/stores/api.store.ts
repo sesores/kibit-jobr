@@ -1,12 +1,13 @@
-import { ref, computed, watchEffect, watch } from 'vue'
+import { ref, computed, watchEffect, watch, reactive } from 'vue'
 import { defineStore } from 'pinia'
 
 import api from '@/backend/Api'
+import { useAuthStore } from './auth.store'
 
 import type { User } from '@/types/User'
 import type { Offer } from '@/types/Offer'
-import { useAuthStore } from './auth.store'
 import type { Session } from '@/types/Session'
+import type { SearchTerm } from '@/types/SearchTerm'
 
 
 
@@ -18,23 +19,35 @@ export const useApiStore = defineStore('api', () => {
 		listMyOffers()
 	})
 
-	//watchEffect(effect)
+	// OFFERS
+	const allOffers = ref<Offer[]>([])
 
-	// auth.$subscribe((mutation, state) => {
-	// 	console.log("[ AUTH CHANGED ]")
-	// 	console.log("AUTH MUTATION", mutation)
-	// 	console.log("AUTH STATE", state)
+	watch(allOffers, (n) => { listTags() })
 
-	// 	if (state.session === auth.session)
-	// 	{
-	// 		listOffersOfUser()
-	// 	}
-	// })
+	const trendingOffers = ref<Offer[]>([])
+	const userOffers = ref<Offer[]>([])
+	
+	// SEARCH
+	const foundOffers = ref<Offer[]>([])
+	
+	const searchTerm = reactive<SearchTerm>({
+		phrase: '',
+		tags: [],
+		salary: [ 0, 100000 ]
+	})
 
-	const allOffers = ref<Offer[]>()
-	const trendingOffers = ref<Offer[]>()
-	const userOffers = ref<Offer[]>()
-	const foundOffers = ref<Offer[]>()
+	let searchTimeout = -1;
+
+	watch(searchTerm, (n) => {
+		clearTimeout(searchTimeout)
+		
+		searchTimeout = setTimeout(() => {
+			console.log("SEARCH", searchTerm)
+		}, 500)
+	})
+
+	// META
+	const tags = ref<string[]>([])
 
 
 
@@ -60,8 +73,8 @@ export const useApiStore = defineStore('api', () => {
 	{
 		try
 		{
-			userOffers.value = (auth.session?.user?.id)
-				? await listOffersOfUser(auth.session.user)
+			userOffers.value = (auth.currentUser)
+				? await listOffersOfUser(auth.currentUser)
 				: []
 		}
 		catch (err)
@@ -84,26 +97,83 @@ export const useApiStore = defineStore('api', () => {
 	}
 
 
-	async function searchOffers()
+	async function searchOffers(term:SearchTerm)
 	{
 		//foundOffers.value = backend.searchOffers()
 	}
 
-	
+
+	async function applyToOffer(offer:Offer)
+	{
+		if (!auth.currentUser)
+			return
+
+		try
+		{
+			const result = await api.offer.apply(offer, auth.currentUser)
+			
+			await listMyOffers()
+			await listTrendingOffers()
+
+			return result
+		}
+		catch (err)
+		{
+			console.error(err)
+		}
+	}
+
+
+	async function cancelOffer(offer:Offer)
+	{
+		if (!auth.currentUser)
+			return
+
+		try
+		{
+			const result = await api.offer.cancel(offer, auth.currentUser)
+			
+			await listMyOffers()
+			await listTrendingOffers()
+
+			return result
+		}
+		catch (err)
+		{
+			console.error(err)
+		}
+	}
+
+
+	async function listTags()
+	{
+		tags.value = await api.offer.tags()
+	}
+
+
 	// LOAD DEFAULTS
 	listTrendingOffers()
+	listTags()
 	
 
 	return {
 		allOffers,
 		trendingOffers,
 		userOffers,
+		searchTerm,
 		foundOffers,
+		tags,
 
 		getOfferById,
 		listTrendingOffers, 
 		listAllOffers, 
+		listMyOffers,
 		listOffersOfUser, 
-		searchOffers 
+		searchOffers,
+
+		applyToOffer,
+		cancelOffer,
+
+		listTags
 	}
 })

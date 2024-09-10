@@ -7,6 +7,7 @@ import api from '@/backend/Api'
 import type { Session } from '@/types/Session'
 import type { Offer } from '@/types/Offer'
 import type { User } from '@/types/User'
+import type { SearchTerm } from '@/types/SearchTerm'
 
 
 
@@ -92,12 +93,17 @@ export class Mock
 	{
 		/*
 		list: () => request.get<Offer[]>('/offer'),
-		my: () => request.get<Offer[]>('/offer/my'),
+		user: (id:string) => request.get<Offer[]>(`/offer/user/${ id }`),
+		trending: () => request.get<Offer[]>(`/offer/trending`),
 		get: (id:string) => request.get<Offer>(`/offer/${ id }`),
+		search: (term:SearchTerm) => request.get<Offer[]>('/offer/search'),
+		
 		create: (offer:Offer) => request.post<Offer>('/offer', offer),
 		update: (offer:Offer) => request.put<Offer>('/offer', offer),
 		delete: (id:string) => request.delete<void>(`/offer/${ id }`),
-		apply: (offer:Offer, user:User) => request.post<Offer>('/offer/apply', { offer, user })
+		
+		apply: (offer:Offer, user:User) => request.post<Offer>('/offer/apply', { offer, user }),
+		tags: () => request.get<string[]>('/offer/tags')
 		*/
 
 		// LIST
@@ -112,8 +118,6 @@ export class Mock
 
 			if (!userId)
 				return [ 404 ]
-			
-			console.log('MOCK :: OFFER / USER / ', userId)
 
 			const user = this.getUserById(userId)
 
@@ -125,13 +129,15 @@ export class Mock
 			switch (user.type)
 			{
 				case 'applicant':
-					candidates = this.db.offers.filter((offer) => offer.applicants.includes(user.id))
+					candidates = this.db.offers.filter((offer) => offer.applicants.some((u) => u.id === user.id))
 					break
 				
 				case 'employer':
-					candidates = this.db.offers.filter((offer) => offer.owner === user.id)
+					candidates = this.db.offers.filter((offer) => offer.owner?.id === user.id)
 					break
 			}
+
+			console.log('MOCK :: OFFER / USER / ', candidates)
 
 			return [ 200, candidates ]
 		})
@@ -139,7 +145,109 @@ export class Mock
 
 		// LIST TRENDING
 		this.mock.onGet('/offer/trending').reply((config) => {
-			return [ 200, [...this.db.offers].sort(() => Math.random() - 0.5) ]
+			return [ 200, [...this.db.offers].sort(() => Math.random() - 0.5).slice(0, 4) ]
+		})
+
+
+		// GET
+		// this.mock.onGet(/\/offer\/*/).reply((config) => {
+		// 	const offerId = config.url?.split('/')[1]
+		// 	return [ 200, this.db.offers.find((offer) => offer.id === offerId) ]
+		// })
+
+
+		// SEARCH
+		this.mock.onGet('/offer').reply((config) => {
+			const term = JSON.parse(config.data) as SearchTerm
+			if (!!term) return [ 404 ]
+
+			console.error('MOCK :: SEARCH NOT IMPLEMENTED')
+
+			return [ 200, this.db.offers ]
+		})
+
+
+		// CREATE
+		// this.commit()
+
+		// UPDATE
+		// this.commit()
+
+		// DELETE
+		// this.commit()
+
+
+		// APPLY
+		this.mock.onPost('/offer/apply').reply((config) => {
+			const body = JSON.parse(config.data)
+			
+			const offerId = body?.offer.id
+			const userId = body?.user.id
+
+			if (!offerId || !userId)
+				return [ 404 ]
+
+			const offer = this.getOfferById(offerId)
+			const user = this.getUserById(userId)
+			
+			if (!offer || !user)
+				return [ 404 ]
+
+			offer.applicants.push(user)
+
+			console.log('MOCK :: OFFER / APPLY ', offer, this.getOfferById(offerId))
+			
+			this.commit()
+
+			return [ 200, offer ]
+		})
+
+
+		// CANCEL
+		this.mock.onPost('/offer/cancel').reply((config) => {
+			const body = JSON.parse(config.data)
+			
+			const offerId = body?.offer.id
+			const userId = body?.user.id
+
+			if (!offerId || !userId)
+				return [ 404 ]
+
+			const offer = this.getOfferById(offerId)
+			const user = this.getUserById(userId)
+
+			console.log('MOCK :: OFFER / CANCEL / ', body, offerId, offer, user, userId)
+			
+			if (!offer || !user)
+				return [ 404 ]
+
+			const index = offer.applicants.findIndex((u, i) => (u.id === user.id) ? i : -1 )
+
+			if (index > -1)
+				offer.applicants = offer.applicants.splice(index, 1)
+
+			console.log('MOCK :: OFFER / CANCEL / ', offer, this.getOfferById(offerId))
+			
+			this.commit()
+
+			return [ 200, offer ]
+		})
+
+
+		// LIST TAGS
+		this.mock.onGet('/offer/tags').reply((config) => {
+			const tags:string[] = []
+			
+			this.db.offers.forEach((offer:Offer) => {
+				offer.job.tags.forEach((tag:string) => {
+					if (!tags.includes(tag))
+						tags.push(tag)
+				})
+			})
+
+			tags.sort()
+
+			return [ 200, tags ]
 		})
 	}
 
@@ -185,15 +293,15 @@ export class Mock
 						title: 'VUE 3 - Frontend Developer',
 						description: 'Lorem ipsum dolor sit amet.',
 						tags: [ 'frontend', 'vue' ],
-						created: 12345678,
+						created: 1725981929,
 						salary: {
 							amount: 5000,
-							currency: 'EUR'
+							currency: 'USD'
 						}
 					},
-					owner: this.db.users[0].id,
+					owner: this.db.users[0],
 					applicants: [
-						this.db.users[2].id
+						this.db.users[2]
 					]
 				},
 				{
@@ -203,33 +311,51 @@ export class Mock
 						title: 'NodeJS - Backend Developer',
 						description: 'Lorem ipsum dolor sit amet.',
 						tags: [ 'backend', 'node' ],
-						created: 12345678,
+						created: 1723971929,
 						salary: {
 							amount: 10000,
 							currency: 'EUR'
 						}
 					},
-					owner: this.db.users[0].id,
+					owner: this.db.users[0],
 					applicants: [
-						this.db.users[2].id, this.db.users[3].id
+						this.db.users[2], this.db.users[3]
 					]
 				},
 				{
-					id: '5530ed47-1a6f-4ded-a9d0-dc6016177625 ',
+					id: '5530ed47-1a6f-4ded-a9d0-dc6016177625',
 					job: {
 						id: '6ced7eed-1779-4af3-bb1e-c7bf3945d08f',
 						title: 'React, Spring - Fullstack Developer',
 						description: 'Lorem ipsum dolor sit amet.',
 						tags: [ 'fullstack', 'frontend', 'backend', 'spring' ],
-						created: 12345678,
+						created: 1724981029,
 						salary: {
 							amount: 15000,
 							currency: 'EUR'
 						}
 					},
-					owner: this.db.users[1].id,
+					owner: this.db.users[1],
 					applicants: [
-						this.db.users[3].id
+						this.db.users[3]
+					]
+				},
+				{
+					id: '11123e85-5e76-4662-ab7c-f96d2a3c475f',
+					job: {
+						id: '0fb4976e-4e57-4dea-a7c3-27d7fb0d8c73',
+						title: 'C++ - Embedded Developer',
+						description: 'Lorem ipsum dolor sit amet.',
+						tags: [ 'c++', 'embedded', 'esp32' ],
+						created: 1725860929,
+						salary: {
+							amount: 20000,
+							currency: 'USD'
+						}
+					},
+					owner: this.db.users[1],
+					applicants: [
+						this.db.users[3]
 					]
 				}
 			]

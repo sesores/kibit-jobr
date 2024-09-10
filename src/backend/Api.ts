@@ -4,6 +4,7 @@ import axios, { type AxiosResponse, AxiosError } from 'axios'
 import type { Session } from '@/types/Session'
 import type { Offer } from '@/types/Offer'
 import type { User } from '@/types/User'
+import type { SearchTerm } from '@/types/SearchTerm'
 
 import { useAuthStore } from '@/stores/auth.store'
 
@@ -85,10 +86,16 @@ const offer = {
 	user: (id:string) => request.get<Offer[]>(`/offer/user/${ id }`),
 	trending: () => request.get<Offer[]>(`/offer/trending`),
 	get: (id:string) => request.get<Offer>(`/offer/${ id }`),
+	search: (term:SearchTerm) => request.get<Offer[]>('/offer/search'),
+	
 	create: (offer:Offer) => request.post<Offer>('/offer', offer),
 	update: (offer:Offer) => request.put<Offer>('/offer', offer),
 	delete: (id:string) => request.delete<void>(`/offer/${ id }`),
-	apply: (offer:Offer, user:User) => request.post<Offer>('/offer/apply', { offer, user })
+	
+	apply: (offer:Offer, user:User) => request.post<Offer>('/offer/apply', { offer, user }),
+	cancel: (offer:Offer, user:User) => request.post<Offer>('/offer/cancel', { offer, user }),
+	
+	tags: () => request.get<string[]>('/offer/tags')
 }
 
 
