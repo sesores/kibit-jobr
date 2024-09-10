@@ -216,15 +216,15 @@ export class Mock
 			const offer = this.getOfferById(offerId)
 			const user = this.getUserById(userId)
 
-			console.log('MOCK :: OFFER / CANCEL / ', body, offerId, offer, user, userId)
-			
 			if (!offer || !user)
 				return [ 404 ]
 
-			const index = offer.applicants.findIndex((u, i) => (u.id === user.id) ? i : -1 )
+			const index = offer.applicants.findIndex((u) => u.id === user.id)
+
+			console.log('MOCK :: OFFER / CANCEL ', index, offerId, offer, userId, user)
 
 			if (index > -1)
-				offer.applicants = offer.applicants.splice(index, 1)
+				offer.applicants.splice(index, 1)
 
 			console.log('MOCK :: OFFER / CANCEL / ', offer, this.getOfferById(offerId))
 			
