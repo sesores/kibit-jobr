@@ -1,6 +1,6 @@
 
 type Job = {
-    id:string
+    id?:string
     title:string
     description:string
     tags:string[]

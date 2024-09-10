@@ -2,10 +2,10 @@ import type { Job } from "./Job"
 import type { User } from "./User"
 
 type Offer = {
-    id:string
+    id?:string
     job:Job
-	owner:string
-	applicants:string[]
+	owner?:User
+	applicants:User[]
 }
 
 export type { Offer }
