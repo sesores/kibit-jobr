@@ -3,55 +3,60 @@
 import { ref, TransitionGroup } from 'vue'
 import { RouterLink, RouterView } from 'vue-router'
 
+import OfferEditor from '@/components/OfferEditor.vue'
+
 import { useApiStore } from '@/stores/api.store'
 import { useAuthStore } from '@/stores/auth.store'
 
-import HelloWorld from '@/components/HelloWorld.vue'
-
 const auth = useAuthStore()
 const api = useApiStore()
+
+const showEditor = ref<boolean>(false)
 
 </script>
 
 
 
 <template>
-	<v-app>
-		<v-toolbar title="Login">
-			<Transition name="user">
-				<v-toolbar-title v-if="auth.isLoggedIn">{{ auth.session?.user.username }} ({{ auth.session?.user.type }})</v-toolbar-title>
-			</Transition>
+	<v-app>	
+		<v-app-bar>
+			<v-app-bar-title class="font-weight-black">Jobbr</v-app-bar-title>
 
+			<v-toolbar-title v-if="auth.isLoggedIn">
+				<Transition name="user">
+					<h5>{{ auth.session?.user.username }} ({{ auth.session?.user.type }})</h5>
+				</Transition>
+			</v-toolbar-title>
+			
 			<v-toolbar-items>
-				<v-btn @click="auth.login('john', 'wrong')">Wrong Login</v-btn>
-				<v-btn @click="auth.login('john', 'pwd')">Login</v-btn>
-				<v-btn @click="auth.logout()">Logout</v-btn>
+				<v-btn @click="$router.push('/')">Home</v-btn>
+				<v-btn @click="$router.push('/dashboard')" v-if="auth.isLoggedIn">Dashboard</v-btn>
+				<v-btn @click="auth.isLoggedIn ? auth.logout() : $router.push('login')" variant="tonal" color="primary">{{ auth.isLoggedIn ? 'Logout' : 'Login' }}</v-btn>
 			</v-toolbar-items>
-		</v-toolbar>
+		</v-app-bar>
+		
+		<v-fab-transition>
+			<v-btn v-show="auth.isEmployer" @click="showEditor = !showEditor" position="fixed" location="bottom right" icon size="large" color="success" elevation="8" class="mr-8 mb-8" style="z-index: 1004;">
+				<v-icon icon="mdi-plus"></v-icon>
+				<v-tooltip activator="parent" location="start">Create an Offer</v-tooltip>
+			</v-btn>
+		</v-fab-transition>
 
-		<div v-for="offer in api.trendingOffers">
-			{{ offer.job.title }}
-		</div>
+		<v-main class="fill-height">
+			<RouterView />
+		</v-main>
 
-		<v-divider></v-divider>
-
-		<TransitionGroup tag="ul" name="list">
-			<li v-for="(offer, index) in api.userOffers" :key="offer.id" :data-index="index">
-				{{ offer.job.title }}
-			</li>
-		</TransitionGroup>
-
-		<!-- <div class="wrapper">
-			<HelloWorld msg="You did it!" />
-
-			<nav>
-				<RouterLink to="/">Home</RouterLink>
-				<RouterLink to="/about">About</RouterLink>
-			</nav>
-		</div> -->
+		<!-- <v-overlay v-model="showEditor" activator="parent"></v-overlay> -->
+		<v-overlay v-if="auth.isEmployer" v-model="showEditor" class="align-center justify-center" scroll-strategy="block">
+			<v-container width="500">
+				<v-row>
+					<v-col>
+						<OfferEditor></OfferEditor>
+					</v-col>
+				</v-row>
+			</v-container>
+		</v-overlay>
 	</v-app>
-
-	<!-- <RouterView /> -->
 </template>
 
 

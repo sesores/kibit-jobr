@@ -1,3 +1,4 @@
+
 <script setup lang="ts">
 
 import SearchOffers from '@/components/SearchBar.vue'
@@ -13,19 +14,22 @@ const api = useApiStore()
 
 
 <template>
-	<SearchOffers></SearchOffers>
-
+	
 	<v-container fluid>
 		<v-row>
 			<v-col>
-				<h1 class="font-weight-thin ma-0">Trending Jobs</h1>
+				<h1 class="font-weight-thin ma-0">Dashboard</h1>
 			</v-col>
 		</v-row>
 
 		<v-row class="mt-0">
-			<v-col cols="12" sm="6" lg="4" xl="3" v-for="(offer, i) in api.trendingOffers" :key="offer.id">
-				<OfferCard v-model="api.trendingOffers[i]"></OfferCard>
+			<v-col cols="12" sm="6" lg="4" xl="3" v-for="(offer, i) in api.userOffers" :key="offer.id">
+				<OfferCard v-model="api.userOffers[i]"></OfferCard>
 			</v-col>
 		</v-row>
 	</v-container>
 </template>
+
+
+<style scoped>
+</style>
