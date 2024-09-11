@@ -22,7 +22,9 @@ const showNavigation = ref<boolean>(false)
 				<v-app-bar-nav-icon @click="showNavigation = !showNavigation"></v-app-bar-nav-icon>
 			</template>
 			
-			<v-app-bar-title class="font-weight-black">Jobbr</v-app-bar-title>
+			<v-app-bar-title @click="$router.push({ name: 'home' })" class="cursor-pointer font-weight-black">
+				Jobbr
+			</v-app-bar-title>
 
 			<v-toolbar-title v-if="auth.isLoggedIn">
 				<Transition name="user">
