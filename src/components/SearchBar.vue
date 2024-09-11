@@ -28,14 +28,14 @@ const showFilters = ref(false)
 		</v-row>
 
 		<v-expand-transition>
-			<v-row v-show="showFilters" align="center">
+			<v-row v-show="showFilters" class="align-center">
 				<v-col cols="12" md="6">
-					<v-range-slider label="Salary" v-model="api.searchTerm.salary" min="0" max="100000" hide-details>
+					<v-range-slider label="Salary" v-model="api.searchTerm.salary" min="0" max="100000" class="ma-0" hide-details>
 						<template v-slot:prepend>
-							<v-text-field v-model="api.searchTerm.salary[0]" density="compact" style="width: 100px" type="number" variant="solo" hide-details single-line></v-text-field>
+							<v-text-field v-model="api.searchTerm.salary[0]" style="width: 100px" type="number" variant="solo" hide-details single-line></v-text-field>
 						</template>
 						<template v-slot:append>
-							<v-text-field v-model="api.searchTerm.salary[1]" density="compact" style="width: 100px" type="number" variant="solo" hide-details single-line></v-text-field>
+							<v-text-field v-model="api.searchTerm.salary[1]" style="width: 100px" type="number" variant="solo" hide-details single-line></v-text-field>
 						</template>
 					</v-range-slider>
 				</v-col>
