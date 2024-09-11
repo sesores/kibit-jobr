@@ -17,7 +17,7 @@ app.use(router)
 
 // MOCKING
 import { Mock } from '@/backend/Mock'
-const mock = new Mock(false)
+const mock = new Mock(true) // TRUE means that the mock DB will be recreated for each request
 
 
 // PINIA
