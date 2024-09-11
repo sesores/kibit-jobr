@@ -11,6 +11,7 @@ import type { Offer } from '@/types/Offer'
 import type { Session } from '@/types/Session'
 
 import SearchTerm from '@/types/SearchTerm'
+import type { AxiosError } from 'axios'
 
 
 
@@ -76,7 +77,7 @@ export const useApiStore = defineStore('api', () => {
 			const offer = await api.offer.get(id)
 			return offer
 		} 
-		catch (err)
+		catch (err:any)
 		{
 			console.error(err)
 			message.value.display('error', 'Something went wrong.', err.toString())
@@ -105,7 +106,7 @@ export const useApiStore = defineStore('api', () => {
 		{
 			allOffers.value = await api.offer.list()
 		}
-		catch (err)
+		catch (err:any)
 		{
 			console.error(err)
 			message.value.display('error', 'Something went wrong.', err.toString())
@@ -121,7 +122,7 @@ export const useApiStore = defineStore('api', () => {
 		{
 			trendingOffers.value = await api.offer.trending()
 		}
-		catch (err)
+		catch (err:any)
 		{
 			console.error(err)
 			message.value.display('error', 'Something went wrong.', err.toString())
@@ -139,7 +140,7 @@ export const useApiStore = defineStore('api', () => {
 				? await listOffersOfUser(auth.currentUser)
 				: []
 		}
-		catch (err)
+		catch (err:any)
 		{
 			console.error(err)
 			message.value.display('error', 'Something went wrong.', err.toString())
@@ -155,7 +156,7 @@ export const useApiStore = defineStore('api', () => {
 		{
 			return api.offer.user(user.id)
 		}
-		catch (err)
+		catch (err:any)
 		{
 			console.error(err)
 			message.value.display('error', 'Something went wrong.', err.toString())
@@ -178,7 +179,7 @@ export const useApiStore = defineStore('api', () => {
 	
 			router.push('/search')
 		}
-		catch (err)
+		catch (err:any)
 		{
 			console.error(err)
 			message.value.display('error', 'Something went wrong.', err.toString())
@@ -203,7 +204,7 @@ export const useApiStore = defineStore('api', () => {
 
 			return result
 		}
-		catch (err)
+		catch (err:any)
 		{
 			console.error(err)
 			message.value.display('error', 'Something went wrong.', err.toString())
@@ -228,7 +229,7 @@ export const useApiStore = defineStore('api', () => {
 
 			return result
 		}
-		catch (err)
+		catch (err:any)
 		{
 			console.error(err)
 			message.value.display('error', 'Something went wrong.', err.toString())
@@ -253,7 +254,7 @@ export const useApiStore = defineStore('api', () => {
 
 			return result
 		}
-		catch (err)
+		catch (err:any)
 		{
 			console.error(err)
 			message.value.display('error', 'Something went wrong.', err.toString())
@@ -277,7 +278,7 @@ export const useApiStore = defineStore('api', () => {
 
 			return result
 		}
-		catch (err)
+		catch (err:any)
 		{
 			console.error(err)
 			message.value.display('error', 'Something went wrong.', err.toString())
@@ -301,7 +302,7 @@ export const useApiStore = defineStore('api', () => {
 
 			return result
 		}
-		catch (err)
+		catch (err:any)
 		{
 			console.error(err)
 			message.value.display('error', 'Something went wrong.', err.toString())
@@ -315,7 +316,7 @@ export const useApiStore = defineStore('api', () => {
 		{
 			tags.value = await api.offer.tags()
 		}
-		catch (err)
+		catch (err:any)
 		{
 			console.error(err)
 			message.value.display('error', 'Something went wrong.', err.toString())
