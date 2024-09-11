@@ -57,7 +57,7 @@ To let the mocking regenerate the entire mock 'database', set the **constructor 
 ``` 
 @/main.ts
 ```
-at [line](https://github.com/sesores/kibit-jobr/blob/958ea87c617971b319d716489c1a33b70743c7c4/src/main.ts#L19):
+at [line](https://github.com/sesores/kibit-jobr/blob/958ea87c617971b319d716489c1a33b70743c7c4/src/main.ts#L20):
 ```ts
 const mock = new Mock(false)
 ```
