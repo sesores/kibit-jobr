@@ -19,7 +19,7 @@ const api = useApiStore()
 			<v-col>
 				<v-sheet color="blue" class="hero fill-height min-height-screen pa-8" rounded="rounded" elevation="8">
 						<h1 class="mb-4">Welcome to Jobr!</h1>
-						<p>This example application demonstrates <br /> my capabilities as a frontend developer.</p>
+						<p>This example application demonstrates <br /> my capabilities as a VUE.JS developer.</p>
 
 						<h2 class="mt-8 mb-4">Key Features</h2>
 						<p>Feel free to expolre the features of the site:</p>
