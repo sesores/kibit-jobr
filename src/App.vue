@@ -4,6 +4,7 @@ import { ref, TransitionGroup } from 'vue'
 import { RouterLink, RouterView } from 'vue-router'
 
 import OfferEditor from '@/components/OfferEditor.vue'
+import type { Offer } from './types/Offer'
 
 import { useApiStore } from '@/stores/api.store'
 import { useAuthStore } from '@/stores/auth.store'
@@ -11,7 +12,34 @@ import { useAuthStore } from '@/stores/auth.store'
 const auth = useAuthStore()
 const api = useApiStore()
 
+
 const showEditor = ref<boolean>(false)
+
+const dummyOffer = ref<Offer>({
+	job: {
+		title: '',
+		description: '',
+		tags: [],
+		created: new Date().getTime(),
+		salary: {
+			amount: 0,
+			currency: 'EUR'
+		}
+	},
+	applicants: []
+})
+
+async function onOfferEditorSubmit()
+{
+	if (!auth.currentUser || !auth.isEmployer)
+		return
+
+	dummyOffer.value.owner = auth.currentUser
+
+	await api.createOffer(dummyOffer.value)
+
+	showEditor.value = false
+}
 
 </script>
 
@@ -19,7 +47,7 @@ const showEditor = ref<boolean>(false)
 
 <template>
 	<v-app>	
-		<v-app-bar>
+		<v-app-bar color="black">
 			<v-app-bar-title class="font-weight-black">Jobbr</v-app-bar-title>
 
 			<v-toolbar-title v-if="auth.isLoggedIn">
@@ -46,12 +74,11 @@ const showEditor = ref<boolean>(false)
 			<RouterView />
 		</v-main>
 
-		<!-- <v-overlay v-model="showEditor" activator="parent"></v-overlay> -->
 		<v-overlay v-if="auth.isEmployer" v-model="showEditor" class="align-center justify-center" scroll-strategy="block">
-			<v-container width="500">
+			<v-container style="min-width: 50vw;">
 				<v-row>
 					<v-col>
-						<OfferEditor></OfferEditor>
+						<OfferEditor title-text="Create an Offer" submit-text="Create" :offer="dummyOffer" @submit="onOfferEditorSubmit"></OfferEditor>
 					</v-col>
 				</v-row>
 			</v-container>
@@ -62,33 +89,5 @@ const showEditor = ref<boolean>(false)
 
 
 <style scoped>
-
-.user-enter-active,
-.user-leave-active
-{
-	transition: all 0.5s ease-in-out;
-}
-
-.user-enter-from,
-.user-leave-to
-{
-	opacity: 0;
-	transform: translateY(1rem);
-}
-
-
-
-.list-enter-active,
-.list-leave-active
-{
-	transition: all 0.5s ease-in-out;
-}
-
-.list-enter-from,
-.list-leave-to
-{
-	opacity: 0;
-	transform: translateX(30px);
-}
 
 </style>

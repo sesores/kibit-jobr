@@ -11,26 +11,22 @@ import { useAuthStore } from '@/stores/auth.store'
 const auth = useAuthStore()
 const api = useApiStore()
 
-const offer = ref<Offer>({
-	job: {
-		title: '',
-		description: '',
-		tags: [],
-		created: new Date().getTime(),
-		salary: {
-			amount: 0,
-			currency: 'EUR'
-		}
-	},
-	applicants: []
-})
+
+const props = defineProps<{ 
+	titleText:string
+	submitText:string
+	offer:Offer 
+}>()
 
 const loading = ref<boolean>(false)
 
+const emit = defineEmits([ 'submit' ])
 
 function submit ()
 {
 	loading.value = true
+
+	emit('submit')
 }
 
 </script>
@@ -44,7 +40,7 @@ function submit ()
 			</template>
 
 			<v-card-item class="bg-blue">
-				<v-card-title>Create a Job</v-card-title>
+				<v-card-title>{{ props.titleText }}</v-card-title>
 			</v-card-item>
 			
 			<v-container fluid>
@@ -60,8 +56,8 @@ function submit ()
 					</v-col>
 				</v-row>
 
-				<v-row align="center">
-					<v-col cols="12" md="6">
+				<v-row class="align-center">
+					<v-col cols="12">
 						<v-slider label="Salary" v-model="offer.job.salary.amount" min="0" max="100000" hide-details>
 							<template v-slot:prepend>
 								<v-text-field v-model="offer.job.salary.amount" density="compact" style="width: 100px" type="number" variant="solo" hide-details single-line></v-text-field>
@@ -69,14 +65,14 @@ function submit ()
 						</v-slider>
 					</v-col>
 
-					<v-col cols="12" md="6" class="justify-center">
+					<v-col cols="12" class="justify-center">
 						<v-autocomplete label="Tags" v-model="offer.job.tags" :items="api.tags" clearable chips multiple variant="solo" hide-details></v-autocomplete>
 					</v-col>
 				</v-row>
 			</v-container>
 
 			<v-card-actions class="pa-4 bg-blue-grey-lighten-5">
-				<v-btn type="submit" variant="elevated" color="primary" block>CREATE</v-btn>
+				<v-btn type="submit" variant="elevated" color="primary" block>{{ props.submitText }}</v-btn>
 			</v-card-actions>
 		</v-card>
 	</v-form>

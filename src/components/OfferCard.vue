@@ -36,6 +36,15 @@ async function cancel()
 }
 
 
+async function remove()
+{
+	if (!auth.currentUser || !offer.value || !offer.value.id)
+		return
+
+		await api.deleteOffer(offer.value.id)
+}
+
+
 </script>
 
 
@@ -71,7 +80,7 @@ async function cancel()
 						<v-icon icon="mdi-pencil"></v-icon>
 						<v-tooltip activator="parent" location="start">Edit Offer</v-tooltip>
 					</v-btn>
-					<v-btn variant="elevated" icon size="x-small" color="error">
+					<v-btn @click="remove()" variant="elevated" icon size="x-small" color="error">
 						<v-icon icon="mdi-delete-outline"></v-icon>
 						<v-tooltip activator="parent" location="start">Delete Offer</v-tooltip>
 					</v-btn>
