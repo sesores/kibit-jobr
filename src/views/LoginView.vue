@@ -26,8 +26,8 @@
 						<v-divider></v-divider>
 
 						<v-card-text class="pt-4 pb-0">
-							<v-text-field v-model="username" label="User Name" class="mb-4" hide-details single-line></v-text-field>
-							<v-text-field v-model="password" label="Password" hide-details single-line></v-text-field>
+							<v-text-field v-model="username" label="User Name" type="text" autocorrect="off" autocapitalize="none" class="mb-4" hide-details single-line></v-text-field>
+							<v-text-field v-model="password" label="Password" type="password" autocorrect="off" autocapitalize="none" hide-details single-line></v-text-field>
 							<v-checkbox label="Keep me signed in" color="primary" hide-details></v-checkbox>
 						</v-card-text>
 
