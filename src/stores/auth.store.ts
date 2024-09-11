@@ -15,8 +15,8 @@ export const useAuthStore = defineStore('auth', () => {
 	const session = ref<Session>()
 	
 	const isLoggedIn = computed<boolean>(() => !!session.value?.user)
-	const isEmployer = computed<boolean>(() => session.value?.user.type == 'employer' ?? false)
-	const isApplicant = computed<boolean>(() => session.value?.user.type == 'applicant' ?? false)
+	const isEmployer = computed<boolean>(() => session.value?.user.type === 'employer')
+	const isApplicant = computed<boolean>(() => session.value?.user.type === 'applicant')
 
 	const currentUser = computed<User | undefined>(() => session.value?.user )
 

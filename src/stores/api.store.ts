@@ -103,6 +103,69 @@ export const useApiStore = defineStore('api', () => {
 	}
 
 
+	async function createOffer(offer:Offer) 
+	{
+		if (!auth.currentUser || !auth.isEmployer)	
+			return
+
+		try
+		{
+			const result = await api.offer.create(offer)
+
+			await listMyOffers()
+			await listTrendingOffers()
+
+			return result
+		}
+		catch (err)
+		{
+			console.error(err)
+		}
+	}
+
+
+	async function updateOffer(offer:Offer) 
+	{
+		if (!auth.currentUser || !auth.isEmployer)	
+			return
+
+		try
+		{
+			const result = await api.offer.update(offer)
+
+			await listMyOffers()
+			await listTrendingOffers()
+
+			return result
+		}
+		catch (err)
+		{
+			console.error(err)
+		}
+	}
+
+
+	async function deleteOffer(id:string) 
+	{
+		if (!auth.currentUser || !auth.isEmployer)	
+			return
+
+		try
+		{
+			const result = await api.offer.delete(id)
+
+			await listMyOffers()
+			await listTrendingOffers()
+
+			return result
+		}
+		catch (err)
+		{
+			console.error(err)
+		}
+	}
+
+
 	async function applyToOffer(offer:Offer)
 	{
 		if (!auth.currentUser)
@@ -170,6 +233,10 @@ export const useApiStore = defineStore('api', () => {
 		listMyOffers,
 		listOffersOfUser, 
 		searchOffers,
+
+		createOffer,
+		updateOffer,
+		deleteOffer,
 
 		applyToOffer,
 		cancelOffer,

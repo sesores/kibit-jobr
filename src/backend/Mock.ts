@@ -2,7 +2,7 @@
 import axios from 'axios'
 import MockAdapter from 'axios-mock-adapter'
 
-import api from '@/backend/Api'
+import { v4 as uuidv4 } from 'uuid'
 
 import type { Session } from '@/types/Session'
 import type { Offer } from '@/types/Offer'
@@ -91,21 +91,6 @@ export class Mock
 	// OFFER
 	offer():void
 	{
-		/*
-		list: () => request.get<Offer[]>('/offer'),
-		user: (id:string) => request.get<Offer[]>(`/offer/user/${ id }`),
-		trending: () => request.get<Offer[]>(`/offer/trending`),
-		get: (id:string) => request.get<Offer>(`/offer/${ id }`),
-		search: (term:SearchTerm) => request.get<Offer[]>('/offer/search'),
-		
-		create: (offer:Offer) => request.post<Offer>('/offer', offer),
-		update: (offer:Offer) => request.put<Offer>('/offer', offer),
-		delete: (id:string) => request.delete<void>(`/offer/${ id }`),
-		
-		apply: (offer:Offer, user:User) => request.post<Offer>('/offer/apply', { offer, user }),
-		tags: () => request.get<string[]>('/offer/tags')
-		*/
-
 		// LIST
 		this.mock.onGet('/offer').reply((config) => {
 			return [ 200, this.db.offers ]
@@ -113,8 +98,10 @@ export class Mock
 
 
 		// LIST BY USER
-		this.mock.onGet(/\/offer\/user\/*/).reply((config) => {
-			const userId = config.url?.split('/user/')[1]
+		this.mock.onGet(/\/offer\/user\/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})/i).reply((config) => {
+			const userId = config.url?.split('/')[3]
+
+			console.log('MOCK :: OFFER / USER / ', userId)
 
 			if (!userId)
 				return [ 404 ]
@@ -137,7 +124,6 @@ export class Mock
 					break
 			}
 
-			console.log('MOCK :: OFFER / USER / ', candidates)
 
 			return [ 200, candidates ]
 		})
@@ -150,10 +136,10 @@ export class Mock
 
 
 		// GET
-		// this.mock.onGet(/\/offer\/*/).reply((config) => {
-		// 	const offerId = config.url?.split('/')[1]
-		// 	return [ 200, this.db.offers.find((offer) => offer.id === offerId) ]
-		// })
+		this.mock.onGet(/\/offer\/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})/i).reply((config) => {
+			const offerId = config.url?.split('/')[2]
+			return [ 200, this.db.offers.find((offer) => offer.id === offerId) ]
+		})
 
 
 		// SEARCH
@@ -168,13 +154,57 @@ export class Mock
 
 
 		// CREATE
-		// this.commit()
+		this.mock.onPost('/offer').reply((config) => {
+			const offer = JSON.parse(config.data) as Offer
+
+			if (!offer)
+				return [ 400 ]
+
+			offer.id = uuidv4()
+			offer.job.id = uuidv4()
+
+			this.db.offers.push(offer)
+			this.commit()
+
+			return [ 201, offer ]
+		});
+
 
 		// UPDATE
-		// this.commit()
+		this.mock.onPut('/offer').reply((config) => {
+			const updated = JSON.parse(config.data) as Offer
 
+			if (!updated?.id)
+				return [ 404 ]
+			
+			const offer = this.getOfferById(updated.id)
+			
+			if (!offer)
+				return [ 404 ]
+
+			offer.job = updated.job
+			offer.applicants = updated.applicants
+			offer.owner = updated.owner
+			
+			this.commit()
+
+			return [ 201, offer ]
+		});
+
+		
 		// DELETE
-		// this.commit()
+		this.mock.onDelete(/\/offer\/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})/i).reply((config) => {
+			const offerId = config.url?.split('/')[2]
+			
+			if (!offerId)
+				return [ 404 ]
+
+			this.db.offers = this.db.offers.filter((offer) => offer.id !== offerId)
+
+			this.commit()
+
+			return [ 200 ]
+		})
 
 
 		// APPLY
