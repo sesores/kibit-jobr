@@ -7,7 +7,8 @@ import { v4 as uuidv4 } from 'uuid'
 import type { Session } from '@/types/Session'
 import type { Offer } from '@/types/Offer'
 import type { User } from '@/types/User'
-import type { SearchTerm } from '@/types/SearchTerm'
+
+import SearchTerm from '@/types/SearchTerm'
 
 
 
@@ -138,18 +139,70 @@ export class Mock
 		// GET
 		this.mock.onGet(/\/offer\/([0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12})/i).reply((config) => {
 			const offerId = config.url?.split('/')[2]
-			return [ 200, this.db.offers.find((offer) => offer.id === offerId) ]
+
+			const result = this.db.offers.find((offer) => offer.id === offerId)
+
+			if (!result)
+				return [ 404 ]
+
+			return [ 200, result ]
 		})
 
 
 		// SEARCH
-		this.mock.onGet('/offer').reply((config) => {
-			const term = JSON.parse(config.data) as SearchTerm
-			if (!!term) return [ 404 ]
+		this.mock.onPost('/offer/search').reply((config) => {
+			const term = Object.assign(new SearchTerm(), JSON.parse(config.data)) as SearchTerm
 
-			console.error('MOCK :: SEARCH NOT IMPLEMENTED')
+			if (!term || !term.isValid())
+				return [ 400 ]
 
-			return [ 200, this.db.offers ]
+			let results = [...this.db.offers]
+			
+			// PHRASE
+			if (term.phrase && term.phrase.length >= 2)
+			{
+				const lower = term.phrase.toLowerCase()
+
+				results = results.filter((offer) => {
+					const hasInTitle = offer.job.title.toLowerCase().includes(lower)
+					const hasInDesc = offer.job.description.toLowerCase().includes(lower)
+
+					return hasInTitle || hasInDesc
+				})
+			}
+
+			// TAGS
+			if (term.tags.length > 0)
+			{
+				results = results.filter((offer) => {
+					let has = true
+
+					term.tags.forEach((t) => {
+						has = has && offer.job.tags.includes(t)
+					})
+
+					return has
+				})
+			}
+
+			// OWNER
+			if (term.owner)
+			{
+				results = results.filter((offer) => {
+					return offer.owner?.id === term.owner?.id
+				})
+			}
+
+			// SALARY
+			if (term.salary[0] != term.salary[1] && term.salary[1] > 0)
+			{
+				results = results.filter((offer) => {
+					return offer.job.salary.amount >= term.salary[0] 
+						&& offer.job.salary.amount <= term.salary[1]
+				})
+			}
+
+			return [ 200, results ]
 		})
 
 
@@ -162,6 +215,7 @@ export class Mock
 
 			offer.id = uuidv4()
 			offer.job.id = uuidv4()
+			offer.job.created = Math.floor(new Date().getTime() / 1000)
 
 			this.db.offers.push(offer)
 			this.commit()

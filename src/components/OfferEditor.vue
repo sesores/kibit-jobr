@@ -11,12 +11,12 @@ import { useAuthStore } from '@/stores/auth.store'
 const auth = useAuthStore()
 const api = useApiStore()
 
-
 const props = defineProps<{ 
-	titleText:string
-	submitText:string
 	offer:Offer 
 }>()
+
+const titleText = computed<string>(() => (props.offer.id) ? 'Edit Offer' : 'Create an Offer')
+const submitText = computed<string>(() => (props.offer.id) ? 'Update' : 'Create')
 
 const loading = ref<boolean>(false)
 
@@ -40,7 +40,7 @@ function submit ()
 			</template>
 
 			<v-card-item class="bg-blue">
-				<v-card-title>{{ props.titleText }}</v-card-title>
+				<v-card-title>{{ titleText }}</v-card-title>
 			</v-card-item>
 			
 			<v-container fluid>
@@ -58,8 +58,8 @@ function submit ()
 
 				<v-row class="align-center">
 					<v-col cols="12">
-						<v-slider label="Salary" v-model="offer.job.salary.amount" min="0" max="100000" hide-details>
-							<template v-slot:prepend>
+						<v-slider label="Salary" v-model="offer.job.salary.amount" min="0" max="30000" hide-details>
+							<template v-slot:append>
 								<v-text-field v-model="offer.job.salary.amount" density="compact" style="width: 100px" type="number" variant="solo" hide-details single-line></v-text-field>
 							</template>
 						</v-slider>
@@ -72,7 +72,7 @@ function submit ()
 			</v-container>
 
 			<v-card-actions class="pa-4 bg-blue-grey-lighten-5">
-				<v-btn type="submit" variant="elevated" color="primary" block>{{ props.submitText }}</v-btn>
+				<v-btn type="submit" variant="elevated" color="primary" block>{{ submitText }}</v-btn>
 			</v-card-actions>
 		</v-card>
 	</v-form>

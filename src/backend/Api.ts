@@ -4,7 +4,8 @@ import axios, { type AxiosResponse, AxiosError } from 'axios'
 import type { Session } from '@/types/Session'
 import type { Offer } from '@/types/Offer'
 import type { User } from '@/types/User'
-import type { SearchTerm } from '@/types/SearchTerm'
+
+import SearchTerm from '@/types/SearchTerm'
 
 import { useAuthStore } from '@/stores/auth.store'
 
@@ -52,7 +53,7 @@ axios.interceptors.response.use(
 				console.error('Server error')
 				break
 		}
-
+		
 		return Promise.reject(error)
 	}
 )
@@ -86,7 +87,7 @@ const offer = {
 	user: (id:string) => request.get<Offer[]>(`/offer/user/${ id }`),
 	trending: () => request.get<Offer[]>(`/offer/trending`),
 	get: (id:string) => request.get<Offer>(`/offer/${ id }`),
-	search: (term:SearchTerm) => request.get<Offer[]>('/offer/search'),
+	search: (term:SearchTerm) => request.post<Offer[]>('/offer/search', term),
 	
 	create: (offer:Offer) => request.post<Offer>('/offer', offer),
 	update: (offer:Offer) => request.put<Offer>('/offer', offer),

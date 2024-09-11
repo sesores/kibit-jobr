@@ -1,13 +1,16 @@
 import { ref, computed, watchEffect, watch, reactive } from 'vue'
 import { defineStore } from 'pinia'
 
+import router from '@/router'
+
 import api from '@/backend/Api'
 import { useAuthStore } from './auth.store'
 
 import type { User } from '@/types/User'
 import type { Offer } from '@/types/Offer'
 import type { Session } from '@/types/Session'
-import type { SearchTerm } from '@/types/SearchTerm'
+
+import SearchTerm from '@/types/SearchTerm'
 
 
 
@@ -30,42 +33,101 @@ export const useApiStore = defineStore('api', () => {
 	// SEARCH
 	const foundOffers = ref<Offer[]>([])
 	
-	const searchTerm = reactive<SearchTerm>({
-		phrase: '',
-		tags: [],
-		salary: [ 0, 100000 ]
-	})
+	const searchTerm = reactive<SearchTerm>(new SearchTerm())
 
 	let searchTimeout = -1;
 
 	watch(searchTerm, (n) => {
 		clearTimeout(searchTimeout)
 		
+		if (!searchTerm.isValid())
+			return
+
 		searchTimeout = setTimeout(() => {
 			console.log("SEARCH", searchTerm)
+
+			searchOffers(searchTerm)
 		}, 500)
 	})
 
 	// META
 	const tags = ref<string[]>([])
 
+	const message = ref({
+		type: 'success',
+		title: '',
+		text: '',
+		show: false,
+
+		display(_type:string, _title:string, _text:string = '') 
+		{
+			this.type = _type
+			this.title = _title
+			this.text = _text
+			this.show = true
+		}
+	})
+
 
 
 	async function getOfferById(id:string):Promise<Offer | undefined>
 	{
-		return await api.offer.get(id)
+		try {
+			const offer = await api.offer.get(id)
+			return offer
+		} 
+		catch (err)
+		{
+			console.error(err)
+			message.value.display('error', 'Something went wrong.', err.toString())
+
+			return undefined
+		}
+
+		/*if (offer)
+		{
+			[ allOffers, userOffers, trendingOffers ].forEach((list) => {
+				const index = list.value.findIndex((o) => o.id === offer.id)
+
+				if (index > -1)
+				{
+					list.value[index] = offer
+				}
+			})
+		}*/
+
 	}
 
 
 	async function listAllOffers()
 	{
-		allOffers.value = await api.offer.list()
+		try
+		{
+			allOffers.value = await api.offer.list()
+		}
+		catch (err)
+		{
+			console.error(err)
+			message.value.display('error', 'Something went wrong.', err.toString())
+
+			allOffers.value = []
+		}
 	}
 
 
 	async function listTrendingOffers()
 	{
-		trendingOffers.value = await api.offer.trending()
+		try
+		{
+			trendingOffers.value = await api.offer.trending()
+		}
+		catch (err)
+		{
+			console.error(err)
+			message.value.display('error', 'Something went wrong.', err.toString())
+
+			trendingOffers.value = []
+		}
 	}
 
 
@@ -79,6 +141,9 @@ export const useApiStore = defineStore('api', () => {
 		}
 		catch (err)
 		{
+			console.error(err)
+			message.value.display('error', 'Something went wrong.', err.toString())
+
 			userOffers.value = []
 		}
 	}
@@ -92,6 +157,9 @@ export const useApiStore = defineStore('api', () => {
 		}
 		catch (err)
 		{
+			console.error(err)
+			message.value.display('error', 'Something went wrong.', err.toString())
+
 			return []
 		}
 	}
@@ -99,7 +167,22 @@ export const useApiStore = defineStore('api', () => {
 
 	async function searchOffers(term:SearchTerm)
 	{
-		//foundOffers.value = backend.searchOffers()
+		if (!term.isValid())
+			return
+
+		try
+		{
+			foundOffers.value = await api.offer.search(term)
+	
+			console.log('SEARCH RESULT', foundOffers.value.length)
+	
+			router.push('/search')
+		}
+		catch (err)
+		{
+			console.error(err)
+			message.value.display('error', 'Something went wrong.', err.toString())
+		}
 	}
 
 
@@ -114,12 +197,16 @@ export const useApiStore = defineStore('api', () => {
 
 			await listMyOffers()
 			await listTrendingOffers()
+			await listTags()
+
+			message.value.display('success', 'Your Offer has been created successfully.')
 
 			return result
 		}
 		catch (err)
 		{
 			console.error(err)
+			message.value.display('error', 'Something went wrong.', err.toString())
 		}
 	}
 
@@ -135,12 +222,16 @@ export const useApiStore = defineStore('api', () => {
 
 			await listMyOffers()
 			await listTrendingOffers()
+			await listTags()
+
+			message.value.display('success', 'Your Offer has been updated successfully.')
 
 			return result
 		}
 		catch (err)
 		{
 			console.error(err)
+			message.value.display('error', 'Something went wrong.', err.toString())
 		}
 	}
 
@@ -156,12 +247,16 @@ export const useApiStore = defineStore('api', () => {
 
 			await listMyOffers()
 			await listTrendingOffers()
+			await listTags()
+
+			message.value.display('success', 'Your Offer has been deleted successfully.')
 
 			return result
 		}
 		catch (err)
 		{
 			console.error(err)
+			message.value.display('error', 'Something went wrong.', err.toString())
 		}
 	}
 
@@ -178,11 +273,14 @@ export const useApiStore = defineStore('api', () => {
 			await listMyOffers()
 			await listTrendingOffers()
 
+			message.value.display('success', 'You\'ve applied to this Offer successfully.')
+
 			return result
 		}
 		catch (err)
 		{
 			console.error(err)
+			message.value.display('error', 'Something went wrong.', err.toString())
 		}
 	}
 
@@ -199,18 +297,29 @@ export const useApiStore = defineStore('api', () => {
 			await listMyOffers()
 			await listTrendingOffers()
 
+			message.value.display('success', 'You\'ve cancelled this Offer successfully.')
+
 			return result
 		}
 		catch (err)
 		{
 			console.error(err)
+			message.value.display('error', 'Something went wrong.', err.toString())
 		}
 	}
 
 
 	async function listTags()
 	{
-		tags.value = await api.offer.tags()
+		try
+		{
+			tags.value = await api.offer.tags()
+		}
+		catch (err)
+		{
+			console.error(err)
+			message.value.display('error', 'Something went wrong.', err.toString())
+		}
 	}
 
 
@@ -226,6 +335,7 @@ export const useApiStore = defineStore('api', () => {
 		searchTerm,
 		foundOffers,
 		tags,
+		message,
 
 		getOfferById,
 		listTrendingOffers, 
@@ -242,5 +352,10 @@ export const useApiStore = defineStore('api', () => {
 		cancelOffer,
 
 		listTags
+	}
+}, 
+{
+	persist: {
+		omit: [ 'searchTerm', 'foundOffers', 'message' ]
 	}
 })
