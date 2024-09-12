@@ -57,12 +57,16 @@ function submit ()
 				</v-row>
 
 				<v-row class="align-center">
-					<v-col cols="12">
+					<v-col cols="12" md="9">
 						<v-slider label="Salary" v-model="offer.job.salary.amount" min="0" max="30000" hide-details>
 							<template v-slot:append>
 								<v-text-field v-model="offer.job.salary.amount" density="compact" style="width: 100px" type="number" variant="solo" hide-details single-line></v-text-field>
 							</template>
 						</v-slider>
+					</v-col>
+
+					<v-col cols="12" md="3">
+						<v-select label="Currency" v-model="offer.job.salary.currency" :items="[ 'EUR', 'USD' ]"></v-select>
 					</v-col>
 
 					<v-col cols="12" class="justify-center">
