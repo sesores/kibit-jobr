@@ -98,7 +98,8 @@ In a real world scenario I would create **separate API models** for **Requests**
 ## It would have been nice
 
  - Tests, tests and tests
- - `Remember Me`
+ - A working `Remember Me`
+ - Working pagination and sorting
  - Proper planning and implementation of API usage instead of brute-force-reloaded lists
  - Custom theme with at least a bit of CSS magic
  - Transitions
