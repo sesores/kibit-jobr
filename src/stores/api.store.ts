@@ -42,7 +42,10 @@ export const useApiStore = defineStore('api', () => {
 		clearTimeout(searchTimeout)
 		
 		if (!searchTerm.isValid())
+		{
+			foundOffers.value = []
 			return
+		}
 
 		searchTimeout = setTimeout(() => {
 			console.log("SEARCH", searchTerm)
@@ -183,6 +186,8 @@ export const useApiStore = defineStore('api', () => {
 		{
 			console.error(err)
 			message.value.display('error', 'Something went wrong.', err.toString())
+
+			foundOffers.value = []
 		}
 	}
 
@@ -196,6 +201,7 @@ export const useApiStore = defineStore('api', () => {
 		{
 			const result = await api.offer.create(offer)
 
+			await listAllOffers()
 			await listMyOffers()
 			await listTrendingOffers()
 			await listTags()
@@ -221,6 +227,7 @@ export const useApiStore = defineStore('api', () => {
 		{
 			const result = await api.offer.update(offer)
 
+			await listAllOffers()
 			await listMyOffers()
 			await listTrendingOffers()
 			await listTags()
@@ -246,6 +253,7 @@ export const useApiStore = defineStore('api', () => {
 		{
 			const result = await api.offer.delete(id)
 
+			await listAllOffers()
 			await listMyOffers()
 			await listTrendingOffers()
 			await listTags()
@@ -271,6 +279,7 @@ export const useApiStore = defineStore('api', () => {
 		{
 			const result = await api.offer.apply(offer, auth.currentUser)
 			
+			await listAllOffers()
 			await listMyOffers()
 			await listTrendingOffers()
 
@@ -295,6 +304,7 @@ export const useApiStore = defineStore('api', () => {
 		{
 			const result = await api.offer.cancel(offer, auth.currentUser)
 			
+			await listAllOffers()
 			await listMyOffers()
 			await listTrendingOffers()
 
@@ -325,6 +335,7 @@ export const useApiStore = defineStore('api', () => {
 
 
 	// LOAD DEFAULTS
+	listAllOffers()
 	listTrendingOffers()
 	listTags()
 	
